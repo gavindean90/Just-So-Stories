@@ -227,7 +227,7 @@ style_guide:
   palette: "warm earth tones with twilight blues"
   character_consistency_notes: "Skunk has white stripe from forehead to tail"
 prompts:
-  - page_id: spread_001
+  - display_unit_id: spread_001
     status: draft
     prompt: "A confident skunk in a forest clearing, storybook style, expressive faces, soft lighting"
     negative_prompt: "photorealistic, horror, text watermark"
@@ -236,7 +236,7 @@ prompts:
       - images/candidates/p01-v2.png
     approved: images/approved/p01.png
     approval_notes: "Chosen for clear silhouette and correct character expression."
-  - page_id: page_002
+  - display_unit_id: page_002
     status: ready_to_generate
     prompt: "Skunk moving quietly at dusk, determined expression, painterly children's book style"
     candidates:
@@ -251,7 +251,7 @@ prompts:
 | `prompt_set_version` | Required | integer | Revision of prompt-planning structure. |
 | `style_guide` | Optional | object | Shared art-direction defaults across pages. |
 | `prompts` | Required | list[object] | Page-level prompt definitions. |
-| `prompts[].page_id` | Required | string | Must match `display_units[].id`. |
+| `prompts[].display_unit_id` | Required | string | Must match `display_units[].id`. |
 | `prompts[].status` | Required | enum string | `draft`, `ready_to_generate`, `generated`, `needs_revision`, or `approved`. |
 | `prompts[].prompt` | Required | string | Primary generation/brief prompt text. |
 | `prompts[].negative_prompt` | Optional | string | Exclusions and quality constraints. |
@@ -268,7 +268,7 @@ Recommended workflow:
 1. **Generate or collect candidates** into `images/candidates/`.
 2. **Review candidates** against page intent (`pages.yaml`) and style direction (`prompts.yaml`).
 3. **Select approved image(s)** and place final versions in `images/approved/`.
-4. **Record approved path(s)** in `prompts.yaml` under each corresponding `page_id`.
+4. **Record approved path(s)** in `prompts.yaml` under each corresponding `display_unit_id`.
 5. **Proof visually** for sequence coherence and character consistency before marking story `illustrated`.
 
 Conventions:
