@@ -1,0 +1,111 @@
+name: Build and publish editions
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "publish-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.10"
+
+      - name: Install pinned Python dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Set up Pandoc
+        uses: pandoc/actions/setup@v1
+        with:
+          version: "3.1.3"
+
+      - name: Build and run repository checks
+        run: make check
+
+      - name: Validate EPUB with EPUBCheck
+        env:
+          EPUBCHECK_VERSION: "5.2.1"
+        run: |
+          curl --fail --location --silent --show-error \
+            "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" \
+            --output "$RUNNER_TEMP/epubcheck.zip"
+          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
+          java -jar "$RUNNER_TEMP/epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar" \
+            dist/just-so-stories-volume-1.epub
+
+      - name: Upload EPUB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: just-so-stories-epub
+          path: dist/just-so-stories-volume-1.epub
+          if-no-files-found: error
+
+      - name: Upload accessible PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: just-so-stories-pdf
+          path: output/pdf/just-so-stories-volume-1.pdf
+          if-no-files-found: error
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/site
+
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release-editions:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download edition artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: just-so-stories-*
+          merge-multiple: true
+          path: release
+
+      - name: Publish tagged release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "release/just-so-stories-volume-1.epub#Just-So Stories EPUB" \
+            "release/just-so-stories-volume-1.pdf#Just-So Stories accessible PDF" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --generate-notes \
+            --title "Just-So Stories $GITHUB_REF_NAME"

@@ -1,8 +1,11 @@
 dist/
+build/
+output/
 .cache/
 node_modules/
 .venv/
 __pycache__/
+*.pyc
 *.pdf
 *.epub
 *.docx

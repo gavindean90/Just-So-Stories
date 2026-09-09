@@ -1,0 +1,122 @@
+@page {
+  size: 6in 9in;
+  margin: 0.78in 0.72in 0.72in;
+
+  @bottom-center {
+    content: counter(page);
+    color: #665f57;
+    font-family: "DejaVu Sans", sans-serif;
+    font-size: 8.5pt;
+  }
+}
+
+@page:first {
+  @bottom-center {
+    content: none;
+  }
+}
+
+html {
+  color: #27231f;
+  font-family: "DejaVu Serif", serif;
+  font-size: 12.5pt;
+  line-height: 1.55;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: #5f2419;
+  text-decoration: underline;
+}
+
+.title-page {
+  display: flex;
+  min-height: 7.2in;
+  flex-direction: column;
+  justify-content: center;
+  break-after: page;
+  text-align: center;
+}
+
+.kicker {
+  margin: 0 0 0.75rem;
+  font-family: "DejaVu Sans", sans-serif;
+  font-size: 8.5pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title-page h1 {
+  margin: 0;
+  color: #341d18;
+  font-size: 34pt;
+  font-weight: 600;
+  line-height: 1.02;
+}
+
+.subtitle {
+  margin: 0.8rem 0 0;
+  color: #7b3526;
+  font-size: 16pt;
+  font-style: italic;
+}
+
+.author {
+  margin: 2rem 0 0;
+}
+
+.contents {
+  break-after: page;
+}
+
+.contents h2 {
+  margin: 0 0 1.4rem;
+  font-size: 24pt;
+  bookmark-level: none;
+}
+
+.contents ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.contents li {
+  margin: 0 0 0.8rem;
+  padding-left: 0.3rem;
+}
+
+.contents a {
+  display: block;
+}
+
+.contents a::after {
+  content: leader(".") target-counter(attr(href), page);
+  font-family: "DejaVu Sans", sans-serif;
+  font-size: 9pt;
+}
+
+.story {
+  break-before: page;
+}
+
+.story h2 {
+  margin: 0 0 2rem;
+  color: #341d18;
+  font-size: 24pt;
+  font-weight: 600;
+  line-height: 1.12;
+}
+
+.story p {
+  margin: 0 0 0.95em;
+  orphans: 2;
+  widows: 2;
+}
+
+.story p:last-child {
+  margin-bottom: 0;
+}

@@ -1,5 +1,12 @@
 # Collection Schema (Issue #6)
 
+> **First-release implementation:** The text-first publishing pipeline uses
+> `collections/just-so-stories-volume-1.json`. Its ordered story objects map
+> titles and stable IDs directly to the canonical root-level `.txt` files.
+> The YAML/story-package contract below remains an aspirational schema for a
+> future illustrated production layer; it does not supersede or duplicate the
+> approved prose sources.
+
 This document defines the **collection configuration contract** for grouping multiple story packages into a buildable release unit.
 
 Collection files live at:
