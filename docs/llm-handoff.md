@@ -59,7 +59,7 @@ When working an issue:
 
 # Current Publishing Strategy
 
-The six root-level `.txt` files are canonical for prose. The text-first web and EPUB pipeline publishes all six in the order declared by the collection manifest. Do not migrate or copy that prose into story packages. Add the richer package and asset layers only when artwork, pagination, or narration work begins.
+The six root-level `.txt` files are canonical for prose. The text-first web, EPUB and tagged PDF pipeline publishes all six in the order declared by the collection manifest. Do not migrate or copy that prose into story packages. Add the richer package and asset layers only when artwork, illustration-specific pagination, or narration work begins.
 
 ---
 

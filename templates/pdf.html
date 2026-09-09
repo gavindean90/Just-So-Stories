@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="$language">
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="$author">
+  <meta name="description" content="$description">
+  <meta name="dcterms.created" content="$publication_date">
+  <title>$collection_title</title>
+</head>
+<body>
+  <header class="title-page">
+    <p class="kicker">A collection by</p>
+    <h1>$collection_title</h1>
+    <p class="subtitle">$subtitle</p>
+    <p class="author">$author</p>
+  </header>
+  <nav class="contents" aria-labelledby="contents-title">
+    <h2 id="contents-title">Contents</h2>
+    <ol>
+$toc
+    </ol>
+  </nav>
+  <main>
+$stories
+  </main>
+</body>
+</html>

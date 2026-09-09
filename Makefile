@@ -2,7 +2,10 @@ PYTHON ?= python3
 PANDOC ?= pandoc
 EPUB := dist/just-so-stories-volume-1.epub
 
-.PHONY: build check epubcheck clean
+.PHONY: setup build check epubcheck clean
+
+setup:
+	$(PYTHON) -m pip install -r requirements.txt
 
 build:
 	$(PYTHON) scripts/build.py --pandoc "$(PANDOC)"
@@ -14,4 +17,4 @@ epubcheck: check
 	epubcheck "$(EPUB)"
 
 clean:
-	rm -rf build dist
+	rm -rf build dist output

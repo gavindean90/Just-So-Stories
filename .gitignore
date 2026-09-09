@@ -1,5 +1,6 @@
 dist/
 build/
+output/
 .cache/
 node_modules/
 .venv/

@@ -6,9 +6,10 @@ Publish the six-story collection from its approved canonical text files through 
 
 - Responsive static web reader
 - EPUB editions
+- Tagged PDF/UA-1 editions
 - Release artifacts attached to GitHub releases
 
-Designed PDFs, illustration and interactive read-aloud features remain possible future additions.
+Illustration, print-specific design and interactive read-aloud features remain possible future additions.
 
 The system should support ongoing story development while preserving stable published collections.
 
@@ -40,9 +41,9 @@ Current features:
 
 ## Secondary Outputs
 
-- designed PDF editions
+- tagged, text-first PDF/UA-1 editions
 - illustrations and read-aloud narration
-- downloadable release bundles beyond EPUB
+- downloadable release editions
 
 ---
 
@@ -57,9 +58,16 @@ Current features:
 
 - Pandoc 3.1.3
 
+## PDF Pipeline
+
+- WeasyPrint 66.0
+- tagged PDF/UA-1 output with bookmarks and document metadata
+
 ## Build/Validation
 
-- dependency-free Python 3.12
+- Python 3.12
+- pinned Python publishing dependencies
+- exact source-text checks across HTML, EPUB and extracted PDF text
 
 ## Automation
 
@@ -153,7 +161,7 @@ GitHub release artifacts
 
 # First Release Strategy
 
-The text-first pipeline publishes all six provisionally text-final stories in the approved order. Rich story packages, pagination, artwork, narration and PDF layout are deferred until an actual asset workflow requires them.
+The text-first pipeline publishes all six provisionally text-final stories in the approved order. Rich story packages, illustration-specific pagination, artwork, narration and print-specific layout are deferred until an actual asset workflow requires them.
 
 ---
 

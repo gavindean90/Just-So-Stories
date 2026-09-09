@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
-"""Validate manifest, site navigation, EPUB structure, and canonical text integrity."""
+"""Validate manifest, editions, accessibility structure, and text integrity."""
 
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import html
 import os
+import re
 import sys
 import zipfile
 from html.parser import HTMLParser
 from pathlib import Path
 from xml.etree import ElementTree
 
-from build import DEFAULT_MANIFEST, DEFAULT_OUTPUT, ROOT, load_manifest, source_units
+from build import (
+    DEFAULT_MANIFEST,
+    DEFAULT_OUTPUT,
+    DEFAULT_PDF_OUTPUT,
+    ROOT,
+    load_manifest,
+    source_units,
+)
 
 
 APPROVED_ORDER = [
@@ -57,6 +66,8 @@ def validate_manifest(manifest: dict) -> None:
         raise ValueError(
             "Manifest story order does not match the approved six-story collection order"
         )
+    if set(manifest["formats"]) != {"web", "epub", "pdf"}:
+        raise ValueError("Manifest formats must declare web, epub, and pdf")
 
 
 def validate_release_ref(manifest: dict) -> None:
@@ -203,10 +214,140 @@ def validate_epub(manifest: dict, output_dir: Path) -> None:
             raise ValueError("EPUB table of contents is missing or out of order")
 
 
+def flatten_outline(items: list) -> list:
+    flattened = []
+    for item in items:
+        if isinstance(item, list):
+            flattened.extend(flatten_outline(item))
+        else:
+            flattened.append(item)
+    return flattened
+
+
+def normalize_pdf_text(text: str) -> str:
+    text = re.sub(r"\n\s*\d+\s*(?=\n|$)", "\n", text)
+    text = re.sub(r"-\s+", "-", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def pdf_structure_counts(structure_root, indirect_object_type) -> Counter:
+    counts: Counter = Counter()
+    visited: set[tuple[int, int]] = set()
+
+    def walk(value) -> None:
+        if isinstance(value, indirect_object_type):
+            reference = (value.idnum, value.generation)
+            if reference in visited:
+                return
+            visited.add(reference)
+            value = value.get_object()
+        if isinstance(value, dict):
+            if "/S" in value:
+                counts[str(value["/S"])] += 1
+            if "/K" in value:
+                walk(value["/K"])
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(structure_root)
+    return counts
+
+
+def validate_pdf(manifest: dict, pdf_output_dir: Path) -> None:
+    try:
+        from pypdf import PdfReader
+        from pypdf.generic import IndirectObject
+    except ImportError as exc:
+        raise RuntimeError(
+            "pypdf is required for PDF validation; run: python3 -m pip install -r requirements.txt"
+        ) from exc
+
+    pdf_path = pdf_output_dir / f'{manifest["id"]}.pdf'
+    if not pdf_path.is_file():
+        raise ValueError("PDF was not generated")
+    reader = PdfReader(pdf_path)
+    if not reader.pages:
+        raise ValueError("PDF has no pages")
+    if reader.is_encrypted:
+        raise ValueError("PDF must not be encrypted")
+
+    metadata = reader.metadata or {}
+    expected_metadata = {
+        "/Title": manifest["title"],
+        "/Author": manifest["author"],
+        "/Subject": manifest["description"],
+    }
+    for key, expected in expected_metadata.items():
+        if metadata.get(key) != expected:
+            raise ValueError(f"PDF metadata mismatch for {key}")
+
+    root = reader.root_object
+    if root.get("/Lang") != manifest["language"]:
+        raise ValueError("PDF document language is missing or incorrect")
+    if not root.get("/MarkInfo", {}).get("/Marked"):
+        raise ValueError("PDF is not marked as tagged")
+    if not root.get("/ViewerPreferences", {}).get("/DisplayDocTitle"):
+        raise ValueError("PDF viewer is not configured to display the document title")
+    if "/StructTreeRoot" not in root:
+        raise ValueError("PDF structure tree is missing")
+    xmp = root.get("/Metadata").get_object().get_data()
+    if b'pdfuaid:part="1"' not in xmp:
+        raise ValueError("PDF/UA-1 identification metadata is missing")
+
+    expected_unit_count = sum(
+        len(source_units(ROOT / story["source"])) for story in manifest["stories"]
+    )
+    structure_counts = pdf_structure_counts(root["/StructTreeRoot"], IndirectObject)
+    if structure_counts["/Document"] != 1:
+        raise ValueError("PDF must have exactly one tagged document root")
+    if structure_counts["/H1"] < 1 or structure_counts["/H2"] < len(manifest["stories"]):
+        raise ValueError("PDF heading tags are incomplete")
+    if structure_counts["/P"] < expected_unit_count:
+        raise ValueError("PDF paragraph tags are incomplete")
+    if structure_counts["/L"] < 1 or structure_counts["/Link"] < len(manifest["stories"]):
+        raise ValueError("PDF contents list or link tags are incomplete")
+
+    destinations = {
+        item.title: reader.get_destination_page_number(item)
+        for item in flatten_outline(reader.outline)
+    }
+    expected_titles = [story["title"] for story in manifest["stories"]]
+    if any(title not in destinations for title in expected_titles):
+        raise ValueError("PDF chapter bookmarks are incomplete")
+    chapter_pages = [destinations[title] for title in expected_titles]
+    if chapter_pages != sorted(set(chapter_pages)):
+        raise ValueError("PDF chapter bookmarks are out of order")
+
+    for index, story in enumerate(manifest["stories"]):
+        start_page = chapter_pages[index]
+        end_page = (
+            chapter_pages[index + 1]
+            if index + 1 < len(chapter_pages)
+            else len(reader.pages)
+        )
+        extracted = normalize_pdf_text(
+            "\n".join(
+                reader.pages[page].extract_text() or ""
+                for page in range(start_page, end_page)
+            )
+        )
+        title = normalize_pdf_text(story["title"])
+        if not extracted.startswith(title):
+            raise ValueError(f"PDF chapter heading mismatch: {story['title']}")
+        extracted_story = extracted[len(title):].strip()
+        canonical_story = normalize_pdf_text(
+            " ".join(source_units(ROOT / story["source"]))
+        )
+        if extracted_story != canonical_story:
+            raise ValueError(f"PDF text-integrity failure: {story['source']}")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--pdf-output", type=Path, default=DEFAULT_PDF_OUTPUT)
     return parser.parse_args()
 
 
@@ -218,7 +359,17 @@ if __name__ == "__main__":
         validate_release_ref(collection)
         validate_site(collection, args.output.resolve())
         validate_epub(collection, args.output.resolve())
-        print("Validated manifest, collection order, site navigation, and exact HTML/EPUB text integrity.")
-    except (ValueError, OSError, ElementTree.ParseError, zipfile.BadZipFile) as error:
+        validate_pdf(collection, args.pdf_output.resolve())
+        print(
+            "Validated manifest, order, navigation, accessibility structure, "
+            "and exact HTML/EPUB/PDF text integrity."
+        )
+    except (
+        ValueError,
+        RuntimeError,
+        OSError,
+        ElementTree.ParseError,
+        zipfile.BadZipFile,
+    ) as error:
         print(f"validation failed: {error}", file=sys.stderr)
         raise SystemExit(1)

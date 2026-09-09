@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the static reader and EPUB from the canonical root-level text files."""
+"""Build the static reader, EPUB, and PDF from canonical root-level text files."""
 
 from __future__ import annotations
 
@@ -18,13 +18,14 @@ from string import Template
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "collections" / "just-so-stories-volume-1.json"
 DEFAULT_OUTPUT = ROOT / "dist"
+DEFAULT_PDF_OUTPUT = ROOT / "output" / "pdf"
 
 
 def load_manifest(path: Path) -> dict:
     manifest = json.loads(path.read_text(encoding="utf-8"))
     required = {
         "id", "title", "subtitle", "author", "language", "version",
-        "publication_date", "identifier", "description", "stories",
+        "publication_date", "identifier", "description", "formats", "stories",
     }
     missing = sorted(required - manifest.keys())
     if missing:
@@ -222,7 +223,60 @@ def build_epub(manifest: dict, output_dir: Path, pandoc: str) -> None:
         raise RuntimeError(f"Pandoc executable not found: {pandoc}") from exc
 
 
-def write_build_info(manifest: dict, output_dir: Path, pandoc: str) -> None:
+def build_pdf(manifest: dict, pdf_output_dir: Path) -> str:
+    try:
+        import weasyprint
+        from weasyprint import CSS, HTML
+    except ImportError as exc:
+        raise RuntimeError(
+            "WeasyPrint is required for PDF output; run: python3 -m pip install -r requirements.txt"
+        ) from exc
+
+    if pdf_output_dir.exists():
+        shutil.rmtree(pdf_output_dir)
+    pdf_output_dir.mkdir(parents=True)
+
+    template = Template((ROOT / "templates" / "pdf.html").read_text(encoding="utf-8"))
+    toc = "\n".join(
+        f'      <li><a href="#{html.escape(story["id"], quote=True)}">'
+        f'{html.escape(story["title"])}</a></li>'
+        for story in manifest["stories"]
+    )
+    stories = []
+    for story in manifest["stories"]:
+        units = source_units(ROOT / story["source"])
+        stories.append(
+            f'    <section class="story" id="{html.escape(story["id"], quote=True)}" '
+            f'aria-labelledby="{html.escape(story["id"], quote=True)}-title">\n'
+            f'      <h2 id="{html.escape(story["id"], quote=True)}-title">'
+            f'{html.escape(story["title"])}</h2>\n'
+            f'{render_text_units(units, indent="      ")}\n'
+            "    </section>"
+        )
+
+    document = template.substitute(
+        language=html.escape(manifest["language"], quote=True),
+        author=html.escape(manifest["author"], quote=True),
+        description=html.escape(manifest["description"], quote=True),
+        publication_date=html.escape(manifest["publication_date"], quote=True),
+        collection_title=html.escape(manifest["title"]),
+        subtitle=html.escape(manifest["subtitle"]),
+        toc=toc,
+        stories="\n".join(stories),
+    )
+    pdf_path = pdf_output_dir / f'{manifest["id"]}.pdf'
+    HTML(string=document, base_url=str(ROOT)).write_pdf(
+        pdf_path,
+        stylesheets=[CSS(filename=ROOT / "templates" / "pdf.css")],
+        pdf_variant="pdf/ua-1",
+        pdf_tags=True,
+    )
+    return weasyprint.__version__
+
+
+def write_build_info(
+    manifest: dict, output_dir: Path, pandoc: str, weasyprint_version: str
+) -> None:
     sources = {}
     for story in manifest["stories"]:
         data = (ROOT / story["source"]).read_bytes()
@@ -234,6 +288,7 @@ def write_build_info(manifest: dict, output_dir: Path, pandoc: str) -> None:
         "collection": manifest["id"],
         "version": manifest["version"],
         "pandoc": pandoc_version,
+        "weasyprint": f"WeasyPrint {weasyprint_version}",
         "source_sha256": sources,
     }
     (output_dir / "build-info.json").write_text(
@@ -241,22 +296,27 @@ def write_build_info(manifest: dict, output_dir: Path, pandoc: str) -> None:
     )
 
 
-def build(manifest_path: Path, output_dir: Path, pandoc: str) -> None:
+def build(
+    manifest_path: Path, output_dir: Path, pdf_output_dir: Path, pandoc: str
+) -> None:
     manifest = load_manifest(manifest_path)
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True)
     build_site(manifest, output_dir)
     build_epub(manifest, output_dir, pandoc)
-    write_build_info(manifest, output_dir, pandoc)
+    weasyprint_version = build_pdf(manifest, pdf_output_dir)
+    write_build_info(manifest, output_dir, pandoc, weasyprint_version)
     print(f"Built web reader: {output_dir / 'site' / 'index.html'}")
     print(f"Built EPUB: {output_dir / (manifest['id'] + '.epub')}")
+    print(f"Built accessible PDF: {pdf_output_dir / (manifest['id'] + '.pdf')}")
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--pdf-output", type=Path, default=DEFAULT_PDF_OUTPUT)
     parser.add_argument("--pandoc", default=os.environ.get("PANDOC", "pandoc"))
     return parser.parse_args()
 
@@ -264,7 +324,12 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     try:
         args = parse_args()
-        build(args.manifest.resolve(), args.output.resolve(), args.pandoc)
+        build(
+            args.manifest.resolve(),
+            args.output.resolve(),
+            args.pdf_output.resolve(),
+            args.pandoc,
+        )
     except (ValueError, RuntimeError, subprocess.CalledProcessError) as error:
         print(f"build failed: {error}", file=sys.stderr)
         raise SystemExit(1)

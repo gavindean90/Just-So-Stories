@@ -2,7 +2,7 @@
 
 *Tales from the Very-Near-Now* is a collection of six animal tales by Gavin
 Dean. This repository publishes the collection as a responsive static reader
-and a reflowable EPUB.
+and as a reflowable EPUB and a tagged PDF.
 
 ## Canonical text
 
@@ -21,17 +21,23 @@ Requirements:
 
 - Python 3.12
 - Pandoc 3.1.3
+- the pinned Python packages in `requirements.txt`
 - EPUBCheck 5.2.1 (optional locally, required in CI)
 
-Build both editions and run the repository's structural and exact-text checks:
+Create a virtual environment, install the publishing dependencies, then build
+all three editions and run the structural and exact-text checks:
 
 ```sh
-make check
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+make PYTHON=.venv/bin/python check
 ```
 
 The web reader is written to `dist/site/`, and the ebook is written to
-`dist/just-so-stories-volume-1.epub`. These generated files are deliberately
-ignored by Git. Preview the reader at `http://localhost:8000` with:
+`dist/just-so-stories-volume-1.epub`. The accessible PDF is written to
+`output/pdf/just-so-stories-volume-1.pdf`. These generated files are
+deliberately ignored by Git. Preview the reader at `http://localhost:8000`
+with:
 
 ```sh
 python3 -m http.server --directory dist/site 8000
@@ -44,9 +50,15 @@ make epubcheck
 ```
 
 The internal validator checks required sources, the fixed collection order,
-generated pages, previous/next links, EPUB metadata/navigation and exact story
-text in both output formats. `dist/build-info.json` records the Pandoc version
-and SHA-256 digest of each source used in a build.
+generated pages, previous/next links, EPUB metadata/navigation, PDF metadata,
+language, tags, structure, bookmarks and exact story text in all three output
+formats. `dist/build-info.json` records the publishing tool versions and SHA-256
+digest of each source used in a build.
+
+The PDF is generated as PDF/UA-1 with tagged headings, paragraphs, lists and
+links, a declared document language, selectable text, chapter bookmarks and a
+logical source order. The web and EPUB editions remain the best choices for
+readers who need fully reflowable text or extensive display customization.
 
 ## Publishing
 
@@ -56,7 +68,8 @@ GitHub's official Pages artifact and deployment actions. The repository's Pages
 source must be set to **GitHub Actions** once by a repository administrator.
 
 Tags beginning with `v` run the same checks and create a GitHub Release with the
-EPUB attached. The tag should match the manifest version, for example:
+EPUB and accessible PDF attached. The tag should match the manifest version,
+for example:
 
 ```sh
 git tag v0.1.0
