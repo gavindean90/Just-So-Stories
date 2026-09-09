@@ -31,7 +31,13 @@ make check
 
 The web reader is written to `dist/site/`, and the ebook is written to
 `dist/just-so-stories-volume-1.epub`. These generated files are deliberately
-ignored by Git. To run the external EPUB standards validator as well:
+ignored by Git. Preview the reader at `http://localhost:8000` with:
+
+```sh
+python3 -m http.server --directory dist/site 8000
+```
+
+To run the external EPUB standards validator as well:
 
 ```sh
 make epubcheck
