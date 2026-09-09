@@ -1,0 +1,45 @@
+{
+  "id": "just-so-stories-volume-1",
+  "title": "Just-So Stories",
+  "subtitle": "Tales from the Very-Near-Now",
+  "author": "Gavin Dean",
+  "language": "en-US",
+  "version": "0.1.0",
+  "status": "preview",
+  "publication_date": "2026-09-09",
+  "identifier": "https://github.com/gavindean90/Just-So-Stories",
+  "description": "Six tales of the night-wanderers living at the rough and ragged edges of the Sprawling Suburbs.",
+  "formats": ["web", "epub"],
+  "stories": [
+    {
+      "id": "coyote-moon-calling-voice",
+      "title": "How the Coyote Found His Moon-Calling Voice",
+      "source": "How the Coyote Found His Moon-Calling Voice.txt"
+    },
+    {
+      "id": "raccoon-thieving-thumbs",
+      "title": "How the Raccoon Got Her Thieving Thumbs",
+      "source": "How the Raccoon Got Her Thieving Thumbs.txt"
+    },
+    {
+      "id": "skunk-demanded-respect",
+      "title": "How the Skunk Demanded Respect",
+      "source": "How the Skunk Demanded Respect.txt"
+    },
+    {
+      "id": "seagull-golden-fry",
+      "title": "How the Seagull Snatched the Golden Fry",
+      "source": "How the Seagull Snatched the Golden Fry.txt"
+    },
+    {
+      "id": "opossum-cheated-hound",
+      "title": "How the Opossum Cheated the Hound",
+      "source": "How the Opossum Cheated the Hound.txt"
+    },
+    {
+      "id": "black-widow-red-warning",
+      "title": "How the Black Widow Wove the Red Warning",
+      "source": "How the Black Widow Wove the Red Warning.txt"
+    }
+  ]
+}

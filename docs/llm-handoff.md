@@ -20,12 +20,14 @@ Chat conversations are temporary. Durable decisions belong in:
 
 ---
 
-# Current Architecture Anchor
+# Current Architecture Anchors
 
 Start here:
 
 ```text
 docs/publishing-plan.md
+collections/just-so-stories-volume-1.json
+README.md
 ```
 
 That file explains the publishing-system direction, including:
@@ -55,30 +57,13 @@ When working an issue:
 
 ---
 
-# Current Pilot Strategy
+# Current Publishing Strategy
 
-The Raccoon story is the pilot.
-
-Do not migrate every story at once.
-
-Prove the complete pipeline with one story first:
-
-```text
-Raccoon package
-→ text final
-→ spread plan
-→ prompts
-→ approved images
-→ web reader
-→ PDF
-→ EPUB
-```
-
-After the Raccoon pilot works, expand the same structure to the rest of Volume 1.
+The six root-level `.txt` files are canonical for prose. The text-first web and EPUB pipeline publishes all six in the order declared by the collection manifest. Do not migrate or copy that prose into story packages. Add the richer package and asset layers only when artwork, pagination, or narration work begins.
 
 ---
 
-# Important Open Issues
+# Historical Planning Issues
 
 - #1 Foundation epic
 - #2 Repo skeleton
@@ -102,15 +87,7 @@ Issue #4 is complete because `docs/publishing-plan.md` exists.
 
 # Recommended Next Work
 
-The next durable architecture files should be:
-
-```text
-docs/story-package-schema.md
-docs/collection-schema.md
-docs/visual-style-bible.md
-```
-
-After those exist, create the repo skeleton and convert the Raccoon story into its package.
+Run `make check` before publication changes. Future illustration or narration work should extend story entries in the collection manifest with asset references while leaving the root-level canonical prose in place.
 
 ---
 
@@ -122,4 +99,4 @@ After those exist, create the repo skeleton and convert the Raccoon story into i
 - Keep generated artifacts out of Git unless explicitly intended.
 - Use issues as the coordination layer.
 - Use docs as the architectural layer.
-- Use story packages as the publishing source of truth.
+- Use the root-level `.txt` files as the publishing source of truth for prose.

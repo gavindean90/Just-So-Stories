@@ -2,12 +2,13 @@
 
 ## Purpose
 
-Transform the repository from a collection of loose story text files into a structured publishing pipeline capable of producing:
+Publish the six-story collection from its approved canonical text files through a small, maintainable pipeline capable of producing:
 
-- Interactive web storybook reader
-- Designed PDF editions
+- Responsive static web reader
 - EPUB editions
 - Release artifacts attached to GitHub releases
+
+Designed PDFs, illustration and interactive read-aloud features remain possible future additions.
 
 The system should support ongoing story development while preserving stable published collections.
 
@@ -15,11 +16,11 @@ The system should support ongoing story development while preserving stable publ
 
 # Core Philosophy
 
-The source of truth is NOT the PDF, EPUB, or website.
+The source of truth is NOT the EPUB or website.
 
-The source of truth is the structured story package.
+The source of truth for prose is the six root-level `.txt` files. Collection identity and order come from `collections/just-so-stories-volume-1.json`.
 
-All publication formats derive from the same canonical source structure.
+All publication formats derive directly from those sources. Generated formats and future asset metadata must not duplicate the story bodies.
 
 ---
 
@@ -27,22 +28,21 @@ All publication formats derive from the same canonical source structure.
 
 ## Primary Experience
 
-Interactive web storybook reader.
+Responsive, text-first static web reader.
 
-Features planned:
+Current features:
 
-- illustrated spreads
 - responsive layout
-- page navigation
-- future read-aloud support
-- future audio highlighting
-- tablet-friendly reading experience
+- table of contents and chapter navigation
+- reader-controlled text size and light/dark theme
+- local story bookmark
+- accessible, semantic HTML
 
 ## Secondary Outputs
 
 - designed PDF editions
-- EPUB editions
-- downloadable release ZIP bundles
+- illustrations and read-aloud narration
+- downloadable release bundles beyond EPUB
 
 ---
 
@@ -50,21 +50,16 @@ Features planned:
 
 ## Web Reader
 
-- React
-- Vite
-- TypeScript
-
-## PDF Pipeline
-
-- Typst
+- generated static HTML
+- plain CSS and small progressive-enhancement JavaScript
 
 ## EPUB Pipeline
 
-- Pandoc
+- Pandoc 3.1.3
 
 ## Build/Validation
 
-- Python
+- dependency-free Python 3.12
 
 ## Automation
 
@@ -105,7 +100,7 @@ archive/
 
 ---
 
-# Story Package Structure
+# Future Story Package Structure
 
 ```text
 stories/{story-slug}/
@@ -143,7 +138,7 @@ stories:
 # Publishing Flow
 
 ```text
-story package
+root `.txt` files + collection manifest
     ↓
 validation
     ↓
@@ -156,23 +151,9 @@ GitHub release artifacts
 
 ---
 
-# Pilot Strategy
+# First Release Strategy
 
-The Raccoon story is the pilot implementation.
-
-The entire publishing pipeline should be proven against one complete story before scaling to the rest of the collection.
-
-Pilot flow:
-
-```text
-Raccoon text final
-→ spread planning
-→ illustration prompts
-→ image approval
-→ web reader
-→ PDF
-→ EPUB
-```
+The text-first pipeline publishes all six provisionally text-final stories in the approved order. Rich story packages, pagination, artwork, narration and PDF layout are deferred until an actual asset workflow requires them.
 
 ---
 

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="$language" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="$description">
+  <title>$page_title</title>
+  <link rel="stylesheet" href="$asset_prefix/assets/reader.css">
+  <script defer src="$asset_prefix/assets/reader.js"></script>
+</head>
+<body data-story-id="$story_id" data-story-title="$story_title" data-story-url="$story_url">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <a class="collection-name" href="$home_url">$collection_title</a>
+    <div class="reader-controls" aria-label="Reading preferences">
+      <button type="button" data-action="decrease-text" aria-label="Decrease text size">A−</button>
+      <button type="button" data-action="increase-text" aria-label="Increase text size">A+</button>
+      <button type="button" data-action="toggle-theme" aria-label="Toggle color theme">◐</button>
+    </div>
+  </header>
+  <main id="main-content" class="$main_class">
+$content
+  </main>
+  <footer class="site-footer">
+    <p>$author · Edition $version</p>
+  </footer>
+</body>
+</html>

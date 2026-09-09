@@ -1,0 +1,17 @@
+body {
+  font-family: serif;
+  line-height: 1.55;
+}
+
+h1 {
+  break-before: page;
+  font-size: 2em;
+  line-height: 1.15;
+  margin: 1.5em 0 1em;
+}
+
+.story p {
+  margin: 0 0 1em;
+  orphans: 2;
+  widows: 2;
+}
