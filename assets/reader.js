@@ -66,6 +66,15 @@
 
   const storyLinks = Array.from(document.querySelectorAll(".story-list a[href]"));
   const randomStoryLink = document.querySelector("[data-random-story]");
+  const contents = document.querySelector(".contents");
+  const contentsHeading = contents?.querySelector("h2");
+  if (randomStoryLink && contents && contentsHeading) {
+    const headingRow = document.createElement("div");
+    headingRow.className = "contents-heading-row";
+    contents.insertBefore(headingRow, contentsHeading);
+    headingRow.append(contentsHeading, randomStoryLink);
+  }
+
   randomStoryLink?.addEventListener("click", (event) => {
     if (!storyLinks.length) return;
     const choice = storyLinks[Math.floor(Math.random() * storyLinks.length)];
@@ -74,6 +83,12 @@
     event.preventDefault();
     window.location.assign(href);
   });
+
+  const editionLinks = document.querySelector(".hero .edition-links");
+  const siteFooter = document.querySelector(".site-footer");
+  if (editionLinks && siteFooter) {
+    siteFooter.append(editionLinks);
+  }
 
   const continueLink = document.querySelector("[data-continue-reading]");
   if (continueLink) {
