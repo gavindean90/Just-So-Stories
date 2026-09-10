@@ -146,7 +146,7 @@ def build_site(manifest: dict, output_dir: Path) -> None:
                 f'<span>Next</span>{html.escape(next_story["title"])}</a>'
             )
         else:
-            links.append('<a href="../index.html"><span>Finished</span>Back to contents</a>')
+            links.append('<a data-finish-reading href="../index.html"><span>Finished</span>Back to contents</a>')
 
         content = f'''    <header class="story-header">
       <p class="eyebrow">Story {index + 1} of {len(manifest["stories"])}</p>
