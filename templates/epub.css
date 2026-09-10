@@ -4,7 +4,6 @@ body {
 }
 
 h1 {
-  break-before: page;
   font-size: 2em;
   line-height: 1.15;
   margin: 1.5em 0 1em;
