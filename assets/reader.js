@@ -25,11 +25,24 @@
     storage.remove("just-so-text-scale");
   }
 
-  document.querySelector('[data-action="toggle-theme"]')?.addEventListener("click", () => {
-    const themes = ["auto", "light", "dark"];
+  const themes = ["auto", "light", "dark"];
+  const themeButton = document.querySelector('[data-action="toggle-theme"]');
+  const updateThemeButton = () => {
+    if (!themeButton) return;
+    const currentIndex = themes.indexOf(root.dataset.theme);
+    const current = currentIndex >= 0 ? themes[currentIndex] : "auto";
+    const next = themes[(themes.indexOf(current) + 1) % themes.length];
+    const label = `Theme: ${current[0].toUpperCase()}${current.slice(1)}. Switch to ${next[0].toUpperCase()}${next.slice(1)}.`;
+    themeButton.setAttribute("aria-label", label);
+    themeButton.title = label;
+  };
+
+  updateThemeButton();
+  themeButton?.addEventListener("click", () => {
     const next = themes[(themes.indexOf(root.dataset.theme) + 1) % themes.length];
     root.dataset.theme = next;
     storage.set("just-so-theme", next);
+    updateThemeButton();
   });
 
   const adjustText = (amount) => {
@@ -51,11 +64,20 @@
     storage.remove("just-so-bookmark");
   });
 
+  const storyLinks = Array.from(document.querySelectorAll(".story-list a[href]"));
+  const randomStoryLink = document.querySelector("[data-random-story]");
+  randomStoryLink?.addEventListener("click", (event) => {
+    if (!storyLinks.length) return;
+    const choice = storyLinks[Math.floor(Math.random() * storyLinks.length)];
+    const href = choice.getAttribute("href");
+    if (!href) return;
+    event.preventDefault();
+    window.location.assign(href);
+  });
+
   const continueLink = document.querySelector("[data-continue-reading]");
   if (continueLink) {
-    const validStoryUrls = new Set(
-      Array.from(document.querySelectorAll(".story-list a[href]"), (link) => link.getAttribute("href"))
-    );
+    const validStoryUrls = new Set(storyLinks.map((link) => link.getAttribute("href")));
     try {
       const bookmark = JSON.parse(storage.get("just-so-bookmark") || "null");
       if (bookmark?.url && bookmark?.title && validStoryUrls.has(bookmark.url)) {
