@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="$description">
+  <link rel="canonical" href="$canonical_url">
+  <meta property="og:type" content="$og_type">
+  <meta property="og:site_name" content="$collection_title">
+  <meta property="og:title" content="$share_title">
+  <meta property="og:description" content="$description">
+  <meta property="og:url" content="$canonical_url">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="$share_title">
+  <meta name="twitter:description" content="$description">
   <title>$page_title</title>
+  <link rel="icon" href="$asset_prefix/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="$asset_prefix/assets/reader.css">
   <script defer src="$asset_prefix/assets/reader.js"></script>
 </head>
@@ -15,7 +25,7 @@
     <div class="reader-controls" aria-label="Reading preferences">
       <button type="button" data-action="decrease-text" aria-label="Decrease text size">A−</button>
       <button type="button" data-action="increase-text" aria-label="Increase text size">A+</button>
-      <button type="button" data-action="toggle-theme" aria-label="Toggle color theme">◐</button>
+      <button type="button" data-action="toggle-theme" aria-label="Theme: Auto" title="Theme: Auto">◐</button>
     </div>
   </header>
   <main id="main-content" class="$main_class">
