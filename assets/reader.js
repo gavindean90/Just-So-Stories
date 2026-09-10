@@ -8,13 +8,22 @@
     },
     set(key, value) {
       try { window.localStorage.setItem(key, value); } catch (_) { /* optional */ }
+    },
+    remove(key) {
+      try { window.localStorage.removeItem(key); } catch (_) { /* optional */ }
     }
   };
 
   const savedTheme = storage.get("just-so-theme") || "auto";
   const savedScale = Number(storage.get("just-so-text-scale") || "1");
+  const initialScale = Number.isFinite(savedScale)
+    ? Math.min(1.3, Math.max(0.9, savedScale))
+    : 1;
   root.dataset.theme = ["auto", "light", "dark"].includes(savedTheme) ? savedTheme : "auto";
-  root.style.setProperty("--text-scale", String(Math.min(1.3, Math.max(0.9, savedScale))));
+  root.style.setProperty("--text-scale", String(initialScale));
+  if (!Number.isFinite(savedScale)) {
+    storage.remove("just-so-text-scale");
+  }
 
   document.querySelector('[data-action="toggle-theme"]')?.addEventListener("click", () => {
     const themes = ["auto", "light", "dark"];
@@ -38,15 +47,26 @@
     storage.set("just-so-bookmark", JSON.stringify({ id: storyId, title: storyTitle, url: storyUrl }));
   }
 
+  document.querySelector("[data-finish-reading]")?.addEventListener("click", () => {
+    storage.remove("just-so-bookmark");
+  });
+
   const continueLink = document.querySelector("[data-continue-reading]");
   if (continueLink) {
+    const validStoryUrls = new Set(
+      Array.from(document.querySelectorAll(".story-list a[href]"), (link) => link.getAttribute("href"))
+    );
     try {
       const bookmark = JSON.parse(storage.get("just-so-bookmark") || "null");
-      if (bookmark?.url && bookmark?.title) {
+      if (bookmark?.url && bookmark?.title && validStoryUrls.has(bookmark.url)) {
         continueLink.href = bookmark.url;
         continueLink.textContent = `Continue reading: ${bookmark.title}`;
         continueLink.hidden = false;
+      } else if (bookmark) {
+        storage.remove("just-so-bookmark");
       }
-    } catch (_) { /* optional */ }
+    } catch (_) {
+      storage.remove("just-so-bookmark");
+    }
   }
 })();
