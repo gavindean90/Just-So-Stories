@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Crescent moon">
+  <rect width="64" height="64" rx="14" fill="#171513"/>
+  <path d="M39.5 9.5c-9.7 2.4-16.9 11.2-16.9 21.7 0 12.3 10 22.3 22.3 22.3 3.2 0 6.2-.7 8.9-1.9A24.7 24.7 0 1 1 39.5 9.5Z" fill="#f8f3e8"/>
+  <circle cx="47" cy="18" r="3" fill="#e29b7e"/>
+</svg>
