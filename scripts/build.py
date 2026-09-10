@@ -79,6 +79,9 @@ def render_page(template: Template, manifest: dict, **values: str) -> str:
         "story_id": "",
         "story_title": "",
         "story_url": "",
+        "canonical_url": "",
+        "share_title": html.escape(manifest["title"], quote=True),
+        "og_type": "website",
     }
     defaults.update(values)
     return template.substitute(defaults)
@@ -93,7 +96,9 @@ def build_site(manifest: dict, output_dir: Path) -> None:
 
     shutil.copy2(ROOT / "assets" / "reader.css", assets_dir / "reader.css")
     shutil.copy2(ROOT / "assets" / "reader.js", assets_dir / "reader.js")
+    shutil.copy2(ROOT / "assets" / "favicon.svg", assets_dir / "favicon.svg")
     page_template = Template((ROOT / "templates" / "page.html").read_text(encoding="utf-8"))
+    site_url = manifest.get("site_url", "").rstrip("/")
 
     items = []
     for index, story in enumerate(manifest["stories"], start=1):
@@ -103,12 +108,23 @@ def build_site(manifest: dict, output_dir: Path) -> None:
             f'<span class="story-number">{index:02}</span>'
             f'<span>{html.escape(story["title"])}</span></a></li>'
         )
+
+    first_story_url = f'stories/{html.escape(manifest["stories"][0]["id"], quote=True)}.html'
+    epub_name = f'{manifest["id"]}.epub'
+    pdf_name = f'{manifest["id"]}.pdf'
     landing_content = f'''    <section class="hero" aria-labelledby="collection-title">
       <p class="eyebrow">A collection by {html.escape(manifest["author"])}</p>
       <h1 id="collection-title">{html.escape(manifest["title"])}</h1>
       <p class="subtitle">{html.escape(manifest["subtitle"])}</p>
       <p class="description">{html.escape(manifest["description"])}</p>
-      <a class="continue-link" data-continue-reading hidden href="#">Continue reading</a>
+      <div class="hero-actions">
+        <a class="story-pick" data-random-story href="{first_story_url}">Tell me a story</a>
+        <a class="continue-link" data-continue-reading hidden href="#">Continue reading</a>
+      </div>
+      <p class="edition-links"><span>Read offline:</span>
+        <a href="downloads/{html.escape(epub_name, quote=True)}" download>EPUB</a>
+        <a href="downloads/{html.escape(pdf_name, quote=True)}" download>Accessible PDF</a>
+      </p>
     </section>
     <nav class="contents" aria-labelledby="contents-heading">
       <h2 id="contents-heading">Contents</h2>
@@ -120,6 +136,8 @@ def build_site(manifest: dict, output_dir: Path) -> None:
         page_template,
         manifest,
         page_title=html.escape(f'{manifest["title"]} — {manifest["subtitle"]}'),
+        share_title=html.escape(manifest["title"], quote=True),
+        canonical_url=html.escape(f"{site_url}/" if site_url else "index.html", quote=True),
         asset_prefix=".",
         home_url="index.html",
         main_class="landing",
@@ -163,6 +181,12 @@ def build_site(manifest: dict, output_dir: Path) -> None:
             page_template,
             manifest,
             page_title=html.escape(f'{story["title"]} — {manifest["title"]}'),
+            share_title=html.escape(story["title"], quote=True),
+            canonical_url=html.escape(
+                f'{site_url}/stories/{story["id"]}.html' if site_url else f'{story["id"]}.html',
+                quote=True,
+            ),
+            og_type="article",
             asset_prefix="..",
             home_url="../index.html",
             main_class="story-shell",
@@ -274,6 +298,15 @@ def build_pdf(manifest: dict, pdf_output_dir: Path) -> str:
     return weasyprint.__version__
 
 
+def publish_site_downloads(manifest: dict, output_dir: Path, pdf_output_dir: Path) -> None:
+    downloads_dir = output_dir / "site" / "downloads"
+    downloads_dir.mkdir(parents=True, exist_ok=True)
+    epub_name = f'{manifest["id"]}.epub'
+    pdf_name = f'{manifest["id"]}.pdf'
+    shutil.copy2(output_dir / epub_name, downloads_dir / epub_name)
+    shutil.copy2(pdf_output_dir / pdf_name, downloads_dir / pdf_name)
+
+
 def write_build_info(
     manifest: dict, output_dir: Path, pandoc: str, weasyprint_version: str
 ) -> None:
@@ -306,6 +339,7 @@ def build(
     build_site(manifest, output_dir)
     build_epub(manifest, output_dir, pandoc)
     weasyprint_version = build_pdf(manifest, pdf_output_dir)
+    publish_site_downloads(manifest, output_dir, pdf_output_dir)
     write_build_info(manifest, output_dir, pandoc, weasyprint_version)
     print(f"Built web reader: {output_dir / 'site' / 'index.html'}")
     print(f"Built EPUB: {output_dir / (manifest['id'] + '.epub')}")
