@@ -173,14 +173,52 @@ h2 {
   font-size: 1.08rem;
 }
 
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.story-pick,
+.continue-link {
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.story-pick {
+  display: inline-block;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.story-pick:hover {
+  border-color: var(--accent);
+}
+
 .continue-link[hidden] {
   display: none;
 }
 
 .continue-link {
   display: inline-block;
-  margin-top: 1.5rem;
-  font-family: system-ui, sans-serif;
+}
+
+.edition-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+  margin: 1.15rem 0 0;
+  color: var(--muted);
+  font: 0.92rem/1.5 system-ui, sans-serif;
+}
+
+.edition-links a {
   font-weight: 700;
 }
 
