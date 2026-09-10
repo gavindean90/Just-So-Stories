@@ -17,12 +17,15 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12.10"
 
@@ -49,22 +52,26 @@ jobs:
             dist/just-so-stories-volume-1.epub
 
       - name: Upload EPUB artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: just-so-stories-epub
           path: dist/just-so-stories-volume-1.epub
           if-no-files-found: error
 
       - name: Upload accessible PDF artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: just-so-stories-pdf
           path: output/pdf/just-so-stories-volume-1.pdf
           if-no-files-found: error
 
+      - name: Configure GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist/site
 
@@ -82,7 +89,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   release-editions:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -92,7 +99,7 @@ jobs:
       contents: write
     steps:
       - name: Download edition artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: just-so-stories-*
           merge-multiple: true
